@@ -9,7 +9,7 @@ def point_charge_field(q_dipole, r_dipole, x, y):
     y0 = r_dipole[1]
 
     r = np.sqrt((x-x0) ** 2 + (y-y0) ** 2) 
-    r[r <= 1] = np.nan
+    r[r <= 2] = np.nan
     u = const * (x - x0) / r
     v = const * (y - y0) / r
 
@@ -33,7 +33,7 @@ def potential_charge_field(q_dipole, r_dipole, x, y):
     y0 = r_dipole[1]
 
     r = np.sqrt((x-x0) ** 2 + (y-y0) ** 2 )
-    r[r <= 1] = np.nan
+    r[r <= 2] = np.nan
     V = const / r
 
     return V
@@ -50,26 +50,12 @@ def scalar_add_potential(r_dipole, q_vector, x, y):
 #chatgpt generated the cases cuz i cba to do that by hand 
 
 q = np.array([
-     1, -2,  3, -1,
-     2, -3,  1, -2,
-     3, -1,  2, -3
+     1, -1
 ])
 
 r = np.array([
-    [-4.0, -3.0],
-    [-1.5, -4.0],
-    [ 2.5, -3.5],
-    [ 4.0, -1.0],
-
-    [-3.5,  0.5],
-    [-0.8, -0.5],
-    [ 1.2,  1.0],
-    [ 3.8,  2.0],
-
-    [-3.0,  3.5],
-    [-0.5,  4.0],
-    [ 2.0,  3.2],
-    [ 4.5,  4.0]
+    [-1, -0],
+    [1, -0],
 ])
 
 #done with the chatgpt stuff
