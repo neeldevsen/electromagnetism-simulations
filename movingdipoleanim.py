@@ -170,11 +170,8 @@ def update(frame):
 
     trail.set_data(states[0, :frame+1], states[1, :frame+1])
     trail.set_3d_properties(states[2, :frame+1])
-    data = np.stack([x,y,z]).T
 
     pt._offsets3d = ([x], [y], [z])
-    
-    t = frame * 0.01
 
     return pt,
 
