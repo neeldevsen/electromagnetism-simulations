@@ -179,4 +179,3 @@ ani = FuncAnimation(fig=fig, func=update,frames=6000, interval=33, blit=True)
 plt.legend(loc="upper right", fontsize=14)
 plt.show()
     
-

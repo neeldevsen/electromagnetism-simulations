@@ -92,8 +92,8 @@ ax.set_zlim(bottom=-xyz_max + z0min, top=xyz_max + z0max)
 ax.quiver(x, y, z, u, v, w, normalize=True, length=0.4, color="black")
 
     # Set labels
-ax.set_xlabel('X axis')
-ax.set_ylabel('Y axis')
-ax.set_zlabel('Z axis')
+ax.set_xlabel('x axis')
+ax.set_ylabel('y axis')
+ax.set_zlabel('z axis')
 
 plt.show()
