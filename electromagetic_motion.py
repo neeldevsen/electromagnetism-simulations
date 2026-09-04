@@ -196,10 +196,15 @@ M_dip = 1e-11
 v_vector = [1.2,1.6,1.8]
 
 states = moving_charge(r_dip, q_dip, M_dip, r1, r2, q, m_matrix, v_vector, 0.01, 1000)
-fig = plt.figure()
+fig = plt.figure(facecolor="black")
 ax = fig.add_subplot(111, projection='3d')
 
 pt = ax.scatter(r_dip[0], r_dip[1], r_dip[2], color="#21FF76", s = 200)
+
+ax.xaxis.set_pane_color((0, 0, 0, 1))
+ax.yaxis.set_pane_color((0, 0, 0, 1))
+ax.zaxis.set_pane_color((0, 0, 0, 1))
+
 
 
 for i in range(0, len(q)):
@@ -210,23 +215,26 @@ for i in range(0, len(q)):
     ax.scatter(r1[i,0], r1[i,1], r1[i,2], color=color, s=50)
 
 for i in range(0, 12):
-    ax.scatter(r2[i,0], r2[i,1], r2[i,2], color="black", s=50)
+    ax.scatter(r2[i,0], r2[i,1], r2[i,2], color="cyan", s=50)
 
 ax.set_xlim(left=-xyz_max + x0min -5, right=xyz_max + x0max + 5)
 ax.set_ylim(bottom=-xyz_max + y0min -5, top=xyz_max + y0max + 5)
 ax.set_zlim(bottom=-xyz_max + z0min -5, top=xyz_max + z0max +5)
 
     # Plot the vector field
-ax.quiver(x, y, z, u1, v1, w1, normalize=True, length=0.4, color="red", alpha = 0.1)
-ax.quiver(x, y, z, u2, v2, w2, normalize=True, length=0.4, color="blue", alpha = 0.1)
+ax.quiver(x, y, z, u1, v1, w1, normalize=True, length=0.4, color="red", alpha = 0.2)
+ax.quiver(x, y, z, u2, v2, w2, normalize=True, length=0.4, color="blue", alpha = 0.2)
 
     # Set labels
 ax.set_xlabel('x axis')
 ax.set_ylabel('y axis')
 ax.set_zlabel('z axis')
+ax.xaxis.label.set_color("white")
+ax.yaxis.label.set_color("white")
+ax.zaxis.label.set_color("white")
+ax.set_facecolor("black")
 
-
-trail, = ax.plot([], [], [], linewidth=2)
+trail, = ax.plot([], [], [], linewidth=2, color="white")
 
 
 def update(frame):
@@ -242,7 +250,7 @@ def update(frame):
     return pt,
 
 ani = FuncAnimation(fig=fig, func=update,frames=1000, interval=33, blit=True)
-plt.legend(loc="upper right", fontsize=14)
+
 plt.show()
     
 

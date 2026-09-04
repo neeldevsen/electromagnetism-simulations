@@ -98,20 +98,31 @@ b_matrix = generate_b(L,N,x0,y0,J0,sigma)
 a = solve_system(A, b, N)
 
 B_x, B_y = generate_B(a, N, L)
-fig = plt.figure()
+fig = plt.figure(facecolor="black")
+
 
 ax = fig.add_subplot(111, projection='3d')
-
+ax.set_facecolor("black")
 
 x , y = np.meshgrid(np.linspace(-L/2,L/2,N), np.linspace(-L/2,L/2,N), indexing="ij")
 
-ax.quiver(x, y, np.zeros_like(x), B_x, B_y, np.zeros_like(B_x), normalize=True, length=0.4, color="black")
+ax.quiver(x, y, np.zeros_like(x), B_x, B_y, np.zeros_like(B_x), normalize=True, length=0.4, color="white")
 ax.set_xlabel('x axis')
 ax.set_ylabel('y axis')
 ax.set_zlabel('z axis')
 
+ax.xaxis.set_pane_color((0, 0, 0, 1))
+ax.yaxis.set_pane_color((0, 0, 0, 1))
+ax.zaxis.set_pane_color((0, 0, 0, 1))
 
-ax.plot_surface(x,y,b_matrix, alpha=0.7, cmap="coolwarm")
+ax.xaxis.label.set_color("white")
+ax.yaxis.label.set_color("white")
+ax.zaxis.label.set_color("white")
+
+ax.tick_params(colors="white")
+
+
+ax.plot_surface(x,y,b_matrix, alpha=0.5, cmap="viridis")
 
 plt.show()
                 
