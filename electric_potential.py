@@ -50,7 +50,11 @@ def scalar_add_potential(r_dipole, q_vector, x, y):
 #chatgpt generated the cases cuz i cba to do that by hand 
 
 q = np.array([
+<<<<<<< HEAD
      1, -1,  3, -1,
+=======
+     1, -2,  3, -1,
+>>>>>>> be2a86c ( added electric potential)
      2, -3,  1, -2,
      3, -1,  2, -3
 ])
