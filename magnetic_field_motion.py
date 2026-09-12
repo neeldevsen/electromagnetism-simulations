@@ -156,6 +156,7 @@ ax.set_xlim(left=-xyz_max + x0min -5, right=xyz_max + x0max + 5)
 ax.set_ylim(bottom=-xyz_max + y0min -5, top=xyz_max + y0max + 5)
 ax.set_zlim(bottom=-xyz_max + z0min -5, top=xyz_max + z0max +5)
 
+
     # Plot the vector field
 ax.quiver(x, y, z, u2, v2, w2, normalize=True, length=0.4, color="blue", alpha = 0.2)
 

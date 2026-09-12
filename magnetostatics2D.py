@@ -122,7 +122,7 @@ ax.zaxis.label.set_color("white")
 ax.tick_params(colors="white")
 
 
-ax.plot_surface(x,y,b_matrix, alpha=0.5, cmap="viridis")
+ax.plot_surface(x,y,b_matrix, alpha=0.5, cmap="plasma")
 
 plt.show()
                 
