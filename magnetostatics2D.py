@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from scipy import constants
 from mpl_toolkits.mplot3d import Axes3D
 from scipy import sparse
+import pyvista as pv
 
 def Jz(x, y, x0, y0, J0, sigma):
     return J0 * np.exp(-((x-x0) ** 2 + (y-y0) ** 2) / (2 * sigma ** 2))
@@ -98,35 +99,92 @@ b_matrix = generate_b(L,N,x0,y0,J0,sigma)
 a = solve_system(A, b, N)
 
 B_x, B_y = generate_B(a, N, L)
-fig = plt.figure(facecolor="black")
+x, y = np.meshgrid(
+    np.linspace(-L / 2, L / 2, N),
+    np.linspace(-L / 2, L / 2, N),
+    indexing="ij"
+)
+
+# CREDITS TO CHATGPT FOR PYVISTA VISUAL INSTEAD OF MATPLOTLIB
+
+# -------------------------
+# Surface: z = b_matrix
+# -------------------------
+
+surface = pv.StructuredGrid(x, y, b_matrix)
+
+surface["B magnitude"] = b_matrix.ravel(order="F")
 
 
-ax = fig.add_subplot(111, projection='3d')
-ax.set_facecolor("black")
+# -------------------------
+# Vector field
+# -------------------------
 
-x , y = np.meshgrid(np.linspace(-L/2,L/2,N), np.linspace(-L/2,L/2,N), indexing="ij")
+z = np.zeros_like(x)
 
-ax.quiver(x, y, np.zeros_like(x), B_x, B_y, np.zeros_like(B_x), normalize=True, length=0.4, color="white")
-ax.set_xlabel('x axis')
-ax.set_ylabel('y axis')
-ax.set_zlabel('z axis')
+points = np.column_stack([
+    x.ravel(order="F"),
+    y.ravel(order="F"),
+    z.ravel(order="F")
+])
 
-ax.xaxis.set_pane_color((0, 0, 0, 1))
-ax.yaxis.set_pane_color((0, 0, 0, 1))
-ax.zaxis.set_pane_color((0, 0, 0, 1))
+vectors = np.column_stack([
+    B_x.ravel(order="F"),
+    B_y.ravel(order="F"),
+    np.zeros(B_x.size)
+])
 
-ax.xaxis.label.set_color("white")
-ax.yaxis.label.set_color("white")
-ax.zaxis.label.set_color("white")
+vector_grid = pv.PolyData(points)
+vector_grid["B"] = vectors
 
-ax.tick_params(colors="white")
+# Normalize vectors so all arrows have same length
+magnitudes = np.linalg.norm(vectors, axis=1)
+
+nonzero = magnitudes > 0
+
+normalized_vectors = vectors.copy()
+normalized_vectors[nonzero] /= magnitudes[nonzero, None]
+
+vector_grid["B_normalized"] = normalized_vectors
+
+arrows = vector_grid.glyph(
+    orient="B_normalized",
+    scale=False,
+    factor=0.4
+)
 
 
-ax.plot_surface(x,y,b_matrix, alpha=0.5, cmap="plasma")
+# -------------------------
+# Plot
+# -------------------------
 
-plt.show()
-                
+plotter = pv.Plotter()
 
+plotter.set_background("black")
+
+plotter.add_mesh(
+    surface,
+    scalars="B magnitude",
+    cmap="plasma",
+    opacity=0.6,
+    smooth_shading=True
+)
+
+plotter.add_mesh(
+    arrows,
+    color="white"
+)
+
+plotter.show_grid(
+    color="white",
+    xlabel="x axis",
+    ylabel="y axis",
+    zlabel="z axis"
+)
+
+plotter.set_scale(zscale=5.0)
+
+plotter.show()
 
                 
 

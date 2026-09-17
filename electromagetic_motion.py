@@ -196,61 +196,304 @@ M_dip = 1e-11
 v_vector = [1.2,1.6,1.8]
 
 states = moving_charge(r_dip, q_dip, M_dip, r1, r2, q, m_matrix, v_vector, 0.01, 1000)
-fig = plt.figure(facecolor="black")
-ax = fig.add_subplot(111, projection='3d')
-
-pt = ax.scatter(r_dip[0], r_dip[1], r_dip[2], color="#21FF76", s = 200)
-
-ax.xaxis.set_pane_color((0, 0, 0, 1))
-ax.yaxis.set_pane_color((0, 0, 0, 1))
-ax.zaxis.set_pane_color((0, 0, 0, 1))
 
 
-
-for i in range(0, len(q)):
-    if q[i] >= 0:
-        color = "red"
-    else:
-        color = "blue"
-    ax.scatter(r1[i,0], r1[i,1], r1[i,2], color=color, s=50)
-
-for i in range(0, 12):
-    ax.scatter(r2[i,0], r2[i,1], r2[i,2], color="cyan", s=50)
-
-ax.set_xlim(left=-xyz_max + x0min -5, right=xyz_max + x0max + 5)
-ax.set_ylim(bottom=-xyz_max + y0min -5, top=xyz_max + y0max + 5)
-ax.set_zlim(bottom=-xyz_max + z0min -5, top=xyz_max + z0max +5)
-
-    # Plot the vector field
-ax.quiver(x, y, z, u1, v1, w1, normalize=True, length=0.4, color="red", alpha = 0.2)
-ax.quiver(x, y, z, u2, v2, w2, normalize=True, length=0.4, color="blue", alpha = 0.2)
-
-    # Set labels
-ax.set_xlabel('x axis')
-ax.set_ylabel('y axis')
-ax.set_zlabel('z axis')
-ax.xaxis.label.set_color("white")
-ax.yaxis.label.set_color("white")
-ax.zaxis.label.set_color("white")
-ax.set_facecolor("black")
-
-trail, = ax.plot([], [], [], linewidth=2, color="white")
+import numpy as np
+import pyvista as pv
 
 
-def update(frame):
-    x = states[0, frame]
-    y = states[1, frame]
-    z = states[2, frame]
+# --------------------------------------------------
+# Plotter
+# --------------------------------------------------
 
-    trail.set_data(states[0, :frame+1], states[1, :frame+1])
-    trail.set_3d_properties(states[2, :frame+1])
+plotter = pv.Plotter()
+plotter.set_background("black")
 
-    pt._offsets3d = ([x], [y], [z])
 
-    return pt,
+# --------------------------------------------------
+# Simulation positions
+# states assumed to be:
+# [x, y, z, vx, vy, vz]
+# --------------------------------------------------
 
-ani = FuncAnimation(fig=fig, func=update,frames=1000, interval=33, blit=True)
+nframes = min(1000, states.shape[1])
 
-plt.show()
+positions = np.asarray(
+    states[:3, :nframes].T,
+    dtype=float
+)
+
+start_pos = positions[0]
+
+
+# --------------------------------------------------
+# Moving particle
+#
+# IMPORTANT:
+# Sphere is centred at the origin.
+# We move its ACTOR rather than modifying PolyData.
+# --------------------------------------------------
+
+particle_mesh = pv.Sphere(
+    radius=0.30,
+    center=(0.0, 0.0, 0.0),
+    theta_resolution=30,
+    phi_resolution=30
+)
+
+particle_actor = plotter.add_mesh(
+    particle_mesh,
+    color="#21FF76",
+    smooth_shading=True
+)
+
+# Start particle at first simulated position
+particle_actor.position = start_pos
+
+
+# --------------------------------------------------
+# Charges r1
+# --------------------------------------------------
+
+q_arr = np.asarray(q)
+
+positive = np.asarray(
+    r1[q_arr >= 0],
+    dtype=float
+)
+
+negative = np.asarray(
+    r1[q_arr < 0],
+    dtype=float
+)
+
+if len(positive) > 0:
+    plotter.add_points(
+        positive,
+        color="red",
+        point_size=12,
+        render_points_as_spheres=True
+    )
+
+if len(negative) > 0:
+    plotter.add_points(
+        negative,
+        color="blue",
+        point_size=12,
+        render_points_as_spheres=True
+    )
+
+
+# --------------------------------------------------
+# r2 particles
+# --------------------------------------------------
+
+plotter.add_points(
+    np.asarray(r2[:12], dtype=float),
+    color="cyan",
+    point_size=12,
+    render_points_as_spheres=True
+)
+
+
+# --------------------------------------------------
+# Vector-field positions
+# --------------------------------------------------
+
+points = np.column_stack([
+    x.ravel(),
+    y.ravel(),
+    z.ravel()
+]).astype(float)
+
+
+# --------------------------------------------------
+# Vector field 1
+# --------------------------------------------------
+
+vectors1 = np.column_stack([
+    u1.ravel(),
+    v1.ravel(),
+    w1.ravel()
+]).astype(float)
+
+mag1 = np.linalg.norm(vectors1, axis=1)
+
+vectors1_norm = np.zeros_like(vectors1)
+
+mask1 = mag1 > 0
+
+vectors1_norm[mask1] = (
+    vectors1[mask1]
+    / mag1[mask1, None]
+)
+
+field1 = pv.PolyData(points)
+
+field1["vectors"] = vectors1_norm
+
+arrows1 = field1.glyph(
+    orient="vectors",
+    scale=False,
+    factor=0.4
+)
+
+plotter.add_mesh(
+    arrows1,
+    color="red",
+    opacity=0.20
+)
+
+
+# --------------------------------------------------
+# Vector field 2
+# --------------------------------------------------
+
+vectors2 = np.column_stack([
+    u2.ravel(),
+    v2.ravel(),
+    w2.ravel()
+]).astype(float)
+
+mag2 = np.linalg.norm(vectors2, axis=1)
+
+vectors2_norm = np.zeros_like(vectors2)
+
+mask2 = mag2 > 0
+
+vectors2_norm[mask2] = (
+    vectors2[mask2]
+    / mag2[mask2, None]
+)
+
+field2 = pv.PolyData(points)
+
+field2["vectors"] = vectors2_norm
+
+arrows2 = field2.glyph(
+    orient="vectors",
+    scale=False,
+    factor=0.4
+)
+
+plotter.add_mesh(
+    arrows2,
+    color="blue",
+    opacity=0.20
+)
+
+
+# --------------------------------------------------
+# Trail
+#
+# Allocate the complete line now.
+# All not-yet-visited points sit on top of the
+# current particle position.
+# --------------------------------------------------
+
+trail_points = np.repeat(
+    start_pos[None, :],
+    nframes,
+    axis=0
+).astype(float)
+
+trail = pv.PolyData(trail_points)
+
+trail.lines = np.concatenate([
+    np.array([nframes], dtype=np.int64),
+    np.arange(nframes, dtype=np.int64)
+])
+
+plotter.add_mesh(
+    trail,
+    color="white",
+    line_width=3
+)
+
+
+# --------------------------------------------------
+# Axes / limits
+# --------------------------------------------------
+
+xmin = -xyz_max + x0min - 5
+xmax =  xyz_max + x0max + 5
+
+ymin = -xyz_max + y0min - 5
+ymax =  xyz_max + y0max + 5
+
+zmin = -xyz_max + z0min - 5
+zmax =  xyz_max + z0max + 5
+
+plotter.show_grid(
+    color="white",
+
+    xlabel="x axis",
+    ylabel="y axis",
+    zlabel="z axis",
+
+    bounds=[
+        xmin, xmax,
+        ymin, ymax,
+        zmin, zmax
+    ]
+)
+
+
+import time
+
+# --------------------------------------------------
+# Animation
+# --------------------------------------------------
+
+# Open window WITHOUT blocking Python execution
+plotter.show(
+    auto_close=False,
+    interactive=True,
+    interactive_update=True
+)
+
+for frame in range(nframes):
+
+    pos = positions[frame]
+
+    # Move green sphere
+    particle_actor.position = (
+        float(pos[0]),
+        float(pos[1]),
+        float(pos[2])
+    )
+
+    # Update trail
+    trail_points[frame] = pos
+
+    if frame + 1 < nframes:
+        trail_points[frame + 1:] = pos
+
+    trail.points = trail_points
+    plotter.update(
+    stime=1,
+    force_redraw=True
+    )
+
     
 
+    # ~30 FPS
+    time.sleep(0.033)
+
+print("start:", positions[0])
+print("middle:", positions[nframes // 2])
+print("end:", positions[-1])
+
+# Keep window alive after animation finishes
+plotter.show()
+
+
+# --------------------------------------------------
+# Timer
+# 33 ms ≈ 30 FPS
+# --------------------------------------------------
+
+
+# --------------------------------------------------
+# Show
+# --------------------------------------------------
