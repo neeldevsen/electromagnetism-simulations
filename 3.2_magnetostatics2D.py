@@ -150,7 +150,7 @@ vector_grid["B_normalized"] = normalized_vectors
 arrows = vector_grid.glyph(
     orient="B_normalized",
     scale=False,
-    factor=0.4
+    factor=0.5
 )
 
 
@@ -166,7 +166,7 @@ plotter.add_mesh(
     surface,
     scalars="B magnitude",
     cmap="plasma",
-    opacity=0.6,
+    opacity=0.4,
     smooth_shading=True
 )
 

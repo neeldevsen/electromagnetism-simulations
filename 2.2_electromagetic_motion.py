@@ -406,7 +406,7 @@ trail.lines = np.concatenate([
 
 plotter.add_mesh(
     trail,
-    color="white",
+    color="lime",
     line_width=3
 )
 

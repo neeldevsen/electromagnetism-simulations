@@ -132,50 +132,177 @@ q_dip = 1e-7
 m_dip = 1e-6
 
 states = moving_charge(r_dip, q_dip, m_dip, r, q, 0.01, 1000)
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
 
-pt = ax.scatter(r_dip[0], r_dip[1], r_dip[2], color="#21FF76", s = 200)
-
-
-for i in range(0, len(q)):
-    if q[i] >= 0:
-        color = "red"
-    else:
-        color = "blue"
-    ax.scatter(r[i,0], r[i,1], r[i,2], color=color, s=50)
+import numpy as np
+import pyvista as pv
+import time
 
 
-
-ax.set_xlim(left=-xyz_max + x0min -5, right=xyz_max + x0max + 5)
-ax.set_ylim(bottom=-xyz_max + y0min -5, top=xyz_max + y0max + 5)
-ax.set_zlim(bottom=-xyz_max + z0min -5, top=xyz_max + z0max +5)
-
-    # Plot the vector field
-ax.quiver(x, y, z, u, v, w, normalize=True, length=0.4, color="black", alpha = 0.1)
-
-    # Set labels
-ax.set_xlabel('x axis')
-ax.set_ylabel('y axis')
-ax.set_zlabel('z axis')
+# --------------------------------------------------
+# Plotter
+# --------------------------------------------------
+plotter = pv.Plotter()
+plotter.set_background("black")
 
 
-trail, = ax.plot([], [], [], linewidth=2)
+# --------------------------------------------------
+# Moving particle
+# --------------------------------------------------
+particle = pv.PolyData(
+    np.array([[r_dip[0], r_dip[1], r_dip[2]]])
+)
+
+plotter.add_mesh(
+    particle,
+    color="#21FF76",
+    point_size=20,
+    render_points_as_spheres=True
+)
 
 
-def update(frame):
-    x = states[0, frame]
-    y = states[1, frame]
-    z = states[2, frame]
+# --------------------------------------------------
+# Charges
+# --------------------------------------------------
+q = np.asarray(q)
+r = np.asarray(r)
 
-    trail.set_data(states[0, :frame+1], states[1, :frame+1])
-    trail.set_3d_properties(states[2, :frame+1])
+positive = q >= 0
+negative = q < 0
 
-    pt._offsets3d = ([x], [y], [z])
+if np.any(positive):
+    positive_points = pv.PolyData(r[positive])
 
-    return pt,
+    plotter.add_mesh(
+        positive_points,
+        color="red",
+        point_size=12,
+        render_points_as_spheres=True
+    )
 
-ani = FuncAnimation(fig=fig, func=update,frames=6000, interval=33, blit=True)
-plt.legend(loc="upper right", fontsize=14)
-plt.show()
-    
+if np.any(negative):
+    negative_points = pv.PolyData(r[negative])
+
+    plotter.add_mesh(
+        negative_points,
+        color="blue",
+        point_size=12,
+        render_points_as_spheres=True
+    )
+
+
+# --------------------------------------------------
+# Vector field
+# --------------------------------------------------
+grid = pv.StructuredGrid(x, y, z)
+
+vectors = np.column_stack([
+    u.ravel(order="F"),
+    v.ravel(order="F"),
+    w.ravel(order="F")
+])
+
+# Normalize field vectors
+magnitude = np.linalg.norm(vectors, axis=1)
+
+valid = magnitude > 0
+vectors[valid] /= magnitude[valid, None]
+
+grid["field"] = vectors
+
+arrows = grid.glyph(
+    orient="field",
+    scale=False,
+    factor=0.4
+)
+
+plotter.add_mesh(
+    arrows,
+    color="white",
+    opacity=0.10
+)
+
+
+# --------------------------------------------------
+# Particle trail
+# --------------------------------------------------
+trail = pv.PolyData()
+
+# Initialise with first position
+trail.points = np.array([
+    [states[0, 0], states[1, 0], states[2, 0]]
+])
+
+plotter.add_mesh(
+    trail,
+    color="#21FF76",
+    line_width=3
+)
+
+
+# --------------------------------------------------
+# Bounds / axes
+# --------------------------------------------------
+bounds = (
+    -xyz_max + x0min - 5,
+     xyz_max + x0max + 5,
+
+    -xyz_max + y0min - 5,
+     xyz_max + y0max + 5,
+
+    -xyz_max + z0min - 5,
+     xyz_max + z0max + 5
+)
+
+plotter.show_bounds(
+    bounds=bounds,
+    xtitle="x axis",
+    ytitle="y axis",
+    ztitle="z axis",
+    color="white"
+)
+
+plotter.add_axes(color="white")
+
+
+# --------------------------------------------------
+# Start interactive window
+# --------------------------------------------------
+plotter.show(
+    interactive_update=True,
+    auto_close=False
+)
+
+
+# --------------------------------------------------
+# Animation
+# --------------------------------------------------
+n_frames = min(6000, states.shape[1])
+
+for frame in range(n_frames):
+
+    # current particle position
+    position = np.array([[
+        states[0, frame],
+        states[1, frame],
+        states[2, frame]
+    ]])
+
+    particle.points = position
+
+    # trajectory up to current frame
+    path = states[:3, :frame + 1].T
+
+    if len(path) >= 2:
+        trail.points = path
+
+        # one continuous polyline through all trail points
+        trail.lines = np.concatenate([
+            [len(path)],
+            np.arange(len(path))
+        ])
+
+    plotter.update()
+
+    # approximately equivalent to interval=33 ms
+    time.sleep(0.033)
+

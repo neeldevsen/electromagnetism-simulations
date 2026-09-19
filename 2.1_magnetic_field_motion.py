@@ -142,47 +142,127 @@ M_dip = 1e-11
 v_vector = [4,2,4]
 
 states = moving_charge(r_dip, q_dip, M_dip, r, m_matrix, v_vector, 0.01, 1000)
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
 
-pt = ax.scatter(r_dip[0], r_dip[1], r_dip[2], color="#21FF76", s = 200)
+import numpy as np
+import pyvista as pv
+import time
 
+# --------------------------------------------------
+# Plotter
+# --------------------------------------------------
+plotter = pv.Plotter()
+plotter.set_background("black")
 
-for i in range(0, m_matrix.shape[0]):
-    ax.scatter(r[i,0], r[i,1], r[i,2], color="black", s=50)
+# --------------------------------------------------
+# Moving particle
+# --------------------------------------------------
+particle = pv.PolyData(np.array([[r_dip[0], r_dip[1], r_dip[2]]]))
 
+plotter.add_mesh(
+    particle,
+    color="#21FF76",
+    point_size=20,
+    render_points_as_spheres=True
+)
 
-ax.set_xlim(left=-xyz_max + x0min -5, right=xyz_max + x0max + 5)
-ax.set_ylim(bottom=-xyz_max + y0min -5, top=xyz_max + y0max + 5)
-ax.set_zlim(bottom=-xyz_max + z0min -5, top=xyz_max + z0max +5)
+# --------------------------------------------------
+# Fixed black points
+# --------------------------------------------------
+fixed_points = pv.PolyData(r[:, :3])
 
+plotter.add_mesh(
+    fixed_points,
+    color="black",
+    point_size=10,
+    render_points_as_spheres=True
+)
 
-    # Plot the vector field
-ax.quiver(x, y, z, u2, v2, w2, normalize=True, length=0.4, color="blue", alpha = 0.2)
+# --------------------------------------------------
+# Vector field
+# --------------------------------------------------
+grid = pv.StructuredGrid(x, y, z)
 
-    # Set labels
-ax.set_xlabel('x axis')
-ax.set_ylabel('y axis')
-ax.set_zlabel('z axis')
+vectors = np.column_stack((
+    u2.ravel(order="F"),
+    v2.ravel(order="F"),
+    w2.ravel(order="F")
+))
 
+# normalize=True equivalent
+norms = np.linalg.norm(vectors, axis=1, keepdims=True)
+norms[norms == 0] = 1
+vectors_normalized = vectors / norms
 
-trail, = ax.plot([], [], [], linewidth=2, color="orange")
+grid["vectors"] = vectors_normalized
 
+arrows = grid.glyph(
+    orient="vectors",
+    scale=False,
+    factor=0.4
+)
 
-def update(frame):
-    x = states[0, frame]
-    y = states[1, frame]
-    z = states[2, frame]
+plotter.add_mesh(
+    arrows,
+    color="blue",
+    opacity=0.2
+)
 
-    trail.set_data(states[0, :frame+1], states[1, :frame+1])
-    trail.set_3d_properties(states[2, :frame+1])
+# --------------------------------------------------
+# Trail
+# --------------------------------------------------
+trail = pv.PolyData(np.array([[states[0, 0], states[1, 0], states[2, 0]]]))
 
-    pt._offsets3d = ([x], [y], [z])
+plotter.add_mesh(
+    trail,
+    color="orange",
+    line_width=3
+)
 
-    return pt,
+# --------------------------------------------------
+# Bounds / axes
+# --------------------------------------------------
+bounds = (
+    -xyz_max + x0min - 5, xyz_max + x0max + 5,
+    -xyz_max + y0min - 5, xyz_max + y0max + 5,
+    -xyz_max + z0min - 5, xyz_max + z0max + 5
+)
 
-ani = FuncAnimation(fig=fig, func=update,frames=1000, interval=33, blit=True)
-plt.legend(loc="upper right", fontsize=14)
-plt.show()
-    
+plotter.show_bounds(
+    bounds=bounds,
+    xtitle="x axis",
+    ytitle="y axis",
+    ztitle="z axis",
+    color="white"
+)
 
+plotter.add_axes(color="white")
+
+# --------------------------------------------------
+# Show window
+# --------------------------------------------------
+plotter.show(interactive_update=True, auto_close=False)
+
+# --------------------------------------------------
+# Animation loop
+# --------------------------------------------------
+n_frames = min(1000, states.shape[1])
+
+for frame in range(n_frames):
+    # update moving particle
+    pos = np.array([[states[0, frame], states[1, frame], states[2, frame]]])
+    particle.points = pos
+
+    # update trail
+    path = states[:3, :frame + 1].T
+    trail.points = path
+
+    if len(path) >= 2:
+        trail.lines = np.concatenate((
+            [len(path)],
+            np.arange(len(path))
+        ))
+
+    plotter.update()
+    time.sleep(0.033)   # about 33 ms per frame
+
+plotter.close()

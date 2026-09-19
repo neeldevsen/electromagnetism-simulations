@@ -72,28 +72,79 @@ z0max = np.max(r[:, 2])
 x, y, z = np.meshgrid(np.arange(-xyz_max + x0min, xyz_max + x0max, 1), np.arange(-xyz_max + y0min, xyz_max + y0max, 1), np.arange(-xyz_max + z0min, xyz_max + z0max, 1))
 
 u, v, w = vector_add_point_fields(r, q, x, y, z)
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
+import numpy as np
+import pyvista as pv
 
+plotter = pv.Plotter()
+plotter.set_background("black")
 
-for i in range(0, len(q)):
-    if q[i] >= 0:
-        color = "red"
-    else:
-        color = "blue"
-    ax.scatter(r[i,0], r[i,1], r[i,2], color=color, s=100)
+# -----------------------------
+# Plot the charges
+# -----------------------------
+q = np.asarray(q)
+r = np.asarray(r)
 
+pos_mask = q >= 0
+neg_mask = q < 0
 
-ax.set_xlim(left=-xyz_max + x0min, right=xyz_max + x0max)
-ax.set_ylim(bottom=-xyz_max + y0min, top=xyz_max + y0max)
-ax.set_zlim(bottom=-xyz_max + z0min, top=xyz_max + z0max)
+if np.any(pos_mask):
+    pos_points = pv.PolyData(r[pos_mask])
+    plotter.add_mesh(
+        pos_points,
+        color="red",
+        point_size=12,
+        render_points_as_spheres=True
+    )
 
-    # Plot the vector field
-ax.quiver(x, y, z, u, v, w, normalize=True, length=0.4, color="black")
+if np.any(neg_mask):
+    neg_points = pv.PolyData(r[neg_mask])
+    plotter.add_mesh(
+        neg_points,
+        color="blue",
+        point_size=12,
+        render_points_as_spheres=True
+    )
 
-    # Set labels
-ax.set_xlabel('x axis')
-ax.set_ylabel('y axis')
-ax.set_zlabel('z axis')
+# -----------------------------
+# Build the vector field grid
+# -----------------------------
+grid = pv.StructuredGrid(x, y, z)
 
-plt.show()
+vectors = np.column_stack((
+    u.ravel(order="F"),
+    v.ravel(order="F"),
+    w.ravel(order="F")
+))
+
+# normalize vectors
+norms = np.linalg.norm(vectors, axis=1, keepdims=True)
+norms[norms == 0] = 1
+vectors_normalized = vectors / norms
+
+grid["vectors"] = vectors_normalized
+
+arrows = grid.glyph(
+    orient="vectors",
+    scale=False,
+    factor=0.4
+)
+
+plotter.add_mesh(arrows, color="white")
+
+# -----------------------------
+# Bounds / axes
+# -----------------------------
+plotter.show_bounds(
+    bounds=(
+        -xyz_max + x0min, xyz_max + x0max,
+        -xyz_max + y0min, xyz_max + y0max,
+        -xyz_max + z0min, xyz_max + z0max
+    ),
+    xtitle="x axis",
+    ytitle="y axis",
+    ztitle="z axis",
+    color="white"
+)
+
+plotter.add_axes(color="white")
+plotter.show()
