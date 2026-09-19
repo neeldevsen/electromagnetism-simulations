@@ -1,4 +1,5 @@
-This Repo has some electricity and magnetism simulations!
+This Repo has some electricity and magnetism simulations!  <br> <br>
+**CREDITS** to **ChatGPT** for the **PyVista** visuals that were **modified** on my original Matplotlib visuals which weren't as good
 
 # 1. Electric Fields and Potential
 
@@ -183,14 +184,25 @@ This part deals with the problem of
 ```math
 \frac{\partial ^2A}{\partial x^2} + \frac{\partial ^2A}{\partial y^2} = -\mu_0 \vec J_z(x,y)
 ```
-
+The current density distribution function is defined like this:
+```math
+J(x, y) = J_0 \exp\frac{(x- x_0)^2 + (y - y_0)^2}{2\sigma^2}
+```
 Using central differences again we get
 
 ```math
-\frac{u_{i+1, j}- 2u_{i, j} + u_{i-1, j}}{\Delta x^2} + \frac{u_{i, j+1}- 2u_{i,j} + u_{i,j-1}}{\Delta y^2} = -\mu_0 \vec J_z(x,y)
+\frac{u_{i+1, j}- 2u_{i, j} + u_{i-1, j}}{\Delta x^2} + \frac{u_{i, j+1}- 2u_{i,j} + u_{i,j-1}}{\Delta y^2} = -\mu_0 \vec J(x,y)
 ```
 
-The algorithm that I used: converting it into a 1D array using `k = iN + j` and converting it into a sparse matrix is all in my code. I then used scipy.linalg.spsolve in order to solve the system and then get the graph:
+The algorithm that I used: converting it into a 1D array using `k = iN + j` and converting it into a sparse matrix is all in my code. I then used scipy.linalg.spsolve in order to solve the system and then computing the curl of `A` using the formula for the `x` vector:
+```math
+\vec B_x = \frac{\partial A_z}{\partial y} \approx \frac{A_z(x , y + \Delta y) - A_z(x, y -\Delta y)}{2\Delta y}
+```
+and for the `y` vector
+```math
+\vec B_y = -\frac{\partial A_z}{\partial x} \approx -\frac{A_z(x + \Delta x , y ) - A_z(x - \Delta x, y)}{2\Delta x}
+```
+Finally we get the graph:
 <p align="center">
 <img src="Images/3.2.png" width="700">
 </p>
