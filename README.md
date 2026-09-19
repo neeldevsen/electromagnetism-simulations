@@ -19,7 +19,7 @@ Then using the principle of Superposition the vector fields can be added like th
 This gives us the visual:
 <p align="center">
 <img src="Images/1.1.png" width="700">
-</p>p>
+</p>
 ## 1.2 Electric Potential
 
 **1.2** uses the **electric potential formula**
@@ -43,7 +43,7 @@ The thing the visual should prove is the Electric-Field to Potential Relationshi
 Which we can see in the image below since the cyan lines (potential) are orthogonal to the electric field lines (white)<p align="center">
 <p align="center">
 <img src="Images/1.2.png" width="700">
-</p>p>
+</p>
 ## 1.3 Electric Field Motion
 
 **1.3** uses Newton's 2nd law:
@@ -61,7 +61,7 @@ Solving this for acceleration gives us
 In the code, I solve for the velocity using the RK4 method and update the position using the previous velocity. When plotted in 3D the dipole travels this path:
 <p align="center">
 <img src="Images/1.3.png" width="700">
-</p>p>
+</p>
 # 2 Magnetic Fields and Electromagnetic Motion
 
 ## 2.1 Magnetic Field Motion
@@ -87,7 +87,7 @@ Now the dipole moves in the field with the equation
 This again was solved using RK4 which is shown in my code. In the image below, the dark blue lines are the magnetic field and the orange line is the trajectory of the electric dipole in this field. In this case the dipole eventually becomes extremely fast and leaves the field.
 <p align="center">
 <img src="Images/2.1.png" width="700">
-</p>p>
+</p>
 ## 2.2 Electromagnetic Motion
 
 **2.2** has both electric dipoles creating a field as well as magnetic dipoles creating a field. The total force that the moving dipole experiences is:
