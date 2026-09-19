@@ -21,6 +21,7 @@ This gives us the visual:
 <p align="center">
 <img src="Images/1.1.png" width="700">
 </p>
+
 ## 1.2 Electric Potential
 
 **1.2** uses the **electric potential formula**
@@ -45,6 +46,7 @@ Which we can see in the image below since the cyan lines (potential) are orthogo
 <p align="center">
 <img src="Images/1.2.png" width="700">
 </p>
+
 ## 1.3 Electric Field Motion
 
 **1.3** uses Newton's 2nd law:
@@ -63,6 +65,7 @@ In the code, I solve for the velocity using the RK4 method and update the positi
 <p align="center">
 <img src="Images/1.3.png" width="700">
 </p>
+
 # 2 Magnetic Fields and Electromagnetic Motion
 
 ## 2.1 Magnetic Field Motion
@@ -89,6 +92,7 @@ This again was solved using RK4 which is shown in my code. In the image below, t
 <p align="center">
 <img src="Images/2.1.png" width="700">
 </p>
+
 ## 2.2 Electromagnetic Motion
 
 **2.2** has both electric dipoles creating a field as well as magnetic dipoles creating a field. The total force that the moving dipole experiences is:
@@ -106,7 +110,8 @@ This again can be used with Newton's 2nd law to get
 Which will again be used to solve for velocity using RK4 methods that is shown in my code. The green trail again is the electric dipole moving in the electromagnetic field (red vector lines is for electric field while blue is for magnetic)
 <p align="center">
 <img src="Images/2.2.png" width="700">
-</p>p>
+</p>
+
 # 3 Generating Magnetic Fields from Current Density
 
 ## 3.1: 1D Magnetic Field Generation
