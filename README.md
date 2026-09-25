@@ -8,7 +8,7 @@ This Repo has some electricity and magnetism simulations!  <br> <br>
 **1.1** uses **Coulomb's law** to generate an electric field using the equation
 
 ```math
-\vec E_i = \frac{1}{4\pi \epsilon_0}\frac{q_i}{|r_i^2| }\hat r_i
+\vec E_i = \frac{1}{4\pi \epsilon_0}\frac{q_i}{|r_i|^2 }\hat r_i
 ```
 
 Then using the principle of Superposition the vector fields can be added like this:
